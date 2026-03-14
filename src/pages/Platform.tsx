@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HOSPITALS } from '../data/hospitalData';
-import type { Hospital, Doctor, Medication, Equipment } from '../data/hospitalData';
+import type { Hospital } from '../data/hospitalData';
 import { checkResourceAvailability, findBestAlternativeHospital } from '../utils/resourceChecker';
 import type { CheckResult } from '../utils/resourceChecker';
+import { parseCSV, fuzzyMapColumns, FIELD_ALIASES } from '../utils/dataUtils';
 
 // ── Types ─────────────────────────────────────────────────────
-interface AIAnalysis { patientSummary: string; urgency: string; urgencyReason: string; diagnosis: string; requiredDoctors: string[]; requiredMedications: string[]; requiredEquipment: string[]; requiresICU: boolean; estimatedStay: string; criticalNeeds: string[]; }
+interface AIAnalysis { patientSummary: string; urgency: string; urgencyReason: string; diagnosis: string; requiredDoctors: string[]; requiredMedications: string[]; requiredEquipment: string[]; requiresICU: boolean; estimatedStay: string; criticalNeeds: string[]; error?: string; }
 interface TreatmentPlan { treatmentPlan: { step: number; action: string; timeframe: string; responsible: string }[]; medicationSchedule: { medication: string; dose: string; frequency: string; duration: string }[]; monitoringPlan: string[]; expectedOutcome: string; dischargeConditions: string[]; }
 interface Referral { referralLetter: string; urgentTransfer: boolean; transferReason: string; handoverNotes: string[]; }
 interface PatientRecord { id: string; name: string; age: string; gender: string; contact: string; address: string; emergencyContact: string; condition: string; vitals: string; analysis?: AIAnalysis; check?: CheckResult; status: 'pending' | 'admitted' | 'partial' | 'referred'; altHospital?: Hospital; treatmentPlan?: TreatmentPlan; referral?: Referral; }
@@ -19,6 +20,7 @@ const tabs = [
   { id: 'register', icon: '👤', label: 'Register Patient' },
   { id: 'queue', icon: '📋', label: 'Patient Queue' },
   { id: 'inventory', icon: '🏥', label: 'Hospital Inventory' },
+  { id: 'import', icon: '📥', label: 'Import Dataset' },
 ];
 
 function urgencyColor(u: string) {
@@ -52,6 +54,31 @@ const Platform = () => {
 
   // Inventory edit
   const [invTab, setInvTab] = useState<'doctors' | 'medications' | 'equipment'>('doctors');
+
+  // Persistence: Load from localStorage
+  useEffect(() => {
+    const savedPatients = localStorage.getItem('hs_patients');
+    const savedHospitals = localStorage.getItem('hs_hospitals');
+    if (savedPatients) setPatients(JSON.parse(savedPatients));
+    if (savedHospitals) setHospitals(JSON.parse(savedHospitals));
+  }, []);
+
+  // Persistence: Save to localStorage
+  useEffect(() => {
+    localStorage.setItem('hs_patients', JSON.stringify(patients));
+  }, [patients]);
+
+  useEffect(() => {
+    localStorage.setItem('hs_hospitals', JSON.stringify(hospitals));
+  }, [hospitals]);
+
+  // Import Dataset State
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [rawRows, setRawRows] = useState<any[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [isProcessingBatch, setIsProcessingBatch] = useState(false);
 
   // ── Analyze Patient ─────────────────────────────────────────
   const handleAnalyze = async () => {
@@ -151,6 +178,72 @@ const Platform = () => {
   };
   const toggleEquip = (eqId: string) => {
     setHospitals(prev => prev.map(h => h.id === currentHospitalId ? { ...h, equipment: h.equipment.map(e => e.id === eqId ? { ...e, occupied: e.available ? !e.occupied : e.occupied, available: !e.available ? true : e.available } : e) } : h));
+  };
+
+  // ── Import Logic ──────────────────────────────────────────
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFile(file);
+    const text = await file.text();
+    let data : any[] = [];
+    if (file.name.endsWith('.json')) {
+      data = JSON.parse(text);
+    } else {
+      data = parseCSV(text);
+    }
+    setRawRows(data);
+    if (data.length > 0) {
+      const keys = Object.keys(data[0]);
+      setHeaders(keys);
+      setMapping(fuzzyMapColumns(keys));
+    }
+  };
+
+  const processBatch = async () => {
+    if (rawRows.length === 0) return;
+    setIsProcessingBatch(true);
+    setBatchProgress({ current: 0, total: rawRows.length });
+
+    const newRecords: PatientRecord[] = [];
+    for (let i = 0; i < rawRows.length; i++) {
+      const row = rawRows[i];
+      setBatchProgress({ current: i + 1, total: rawRows.length });
+
+      const name = row[mapping.name || ''] || 'Unknown Patient';
+      const age = row[mapping.age || ''] || '';
+      const gender = row[mapping.gender || ''] || 'Other';
+      const symptoms = row[mapping.symptoms || ''] || '';
+      const vitals = `BP: ${row[mapping.bp || ''] || '?'}, HR: ${row[mapping.hr || ''] || '?'}, Temp: ${row[mapping.temp || ''] || '?'}, O2: ${row[mapping.o2 || ''] || '?'}`;
+      const conditionText = `${name}, ${age}${gender[0]}, ${symptoms}. Vitals: ${vitals}`;
+
+      try {
+        const res = await fetch('/api/analyze-patient', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientData: conditionText }) });
+        const analysis: AIAnalysis = await res.json();
+        
+        const check = checkResourceAvailability(currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
+        let status: PatientRecord['status'] = check.allAvailable ? 'admitted' : 'partial';
+        let altHospital: Hospital | undefined;
+
+        if (!check.allAvailable) {
+          const alt = findBestAlternativeHospital(check.missingDoctors.map(d => d.required), check.missingMedications.map(m => m.required), check.missingEquipment.map(e => e.required), currentHospitalId);
+          if (alt) { altHospital = alt; status = 'referred'; }
+        }
+
+        const record: PatientRecord = { id: genId(), name, age, gender, contact: '', address: '', emergencyContact: '', condition: symptoms, vitals, analysis, check, status, altHospital };
+        newRecords.push(record);
+      } catch (err) {
+        console.error('Batch error:', err);
+      }
+      // Small delay to prevent rate limit
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    setPatients(prev => [...newRecords, ...prev]);
+    setIsProcessingBatch(false);
+    setRawRows([]);
+    setImportFile(null);
+    setActiveTab('queue');
   };
 
   // ── Stats ────────────────────────────────────────────────────
@@ -522,6 +615,82 @@ const Platform = () => {
                   ))}</tbody></table>
               )}
             </div>
+          </div>
+        )}
+
+        {/* ════════ IMPORT DATASET ════════ */}
+        {activeTab === 'import' && (
+          <div className="p-6 max-w-5xl mx-auto">
+            <h1 className="text-2xl font-black mb-6">📥 Import Dataset</h1>
+            
+            <div className="hs-card p-8 text-center mb-6">
+              <div className="text-4xl mb-4 opacity-30">📄</div>
+              <h2 className="text-lg font-bold mb-2">Upload CSV or JSON Dataset</h2>
+              <p className="text-xs text-hsTextSecondary mb-6 max-w-sm mx-auto">Bulk process patient data through the HealthSense AI diagnostic engine.</p>
+              
+              <input type="file" id="dataset-upload" accept=".csv,.json" onChange={handleFileChange} className="hidden" />
+              <label htmlFor="dataset-upload" className="inline-block bg-hsTeal/10 hover:bg-hsTeal/20 text-hsTeal border border-hsTeal/20 hover:border-hsTeal/40 px-8 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all">
+                {importFile ? `Selected: ${importFile.name}` : 'Choose File (CSV/JSON)'}
+              </label>
+            </div>
+
+            {rawRows.length > 0 && !isProcessingBatch && (
+              <div className="hs-card p-6 animate-in fade-in slide-in-from-bottom-4">
+                <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-hsTeal/10 text-hsTeal flex items-center justify-center text-[10px] font-black">1</span>
+                  Confirm Column Mapping
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  {Object.keys(FIELD_ALIASES).map(field => (
+                    <div key={field}>
+                      <label className="text-[10px] uppercase text-hsTextSecondary block mb-1 font-bold">{field}</label>
+                      <select value={mapping[field] || ''} onChange={e => setMapping(m => ({ ...m, [field]: e.target.value }))}
+                        className="w-full bg-hsBg border border-white/10 rounded-lg px-2 py-1.5 text-xs text-white">
+                        <option value="">(None)</option>
+                        {headers.map(h => <option key={h} value={h}>{h}</option>)}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="bg-hsBg/40 border border-white/5 rounded-xl p-4 mb-6">
+                  <h4 className="text-[10px] uppercase text-hsTextSecondary font-bold mb-3">Preview (First 3 rows)</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[10px]">
+                      <thead><tr className="border-b border-white/10 text-hsTextSecondary"><th className="pb-2 text-left">Name</th><th className="pb-2 text-left">Age</th><th className="pb-2 text-left">Symptoms</th></tr></thead>
+                      <tbody>
+                        {rawRows.slice(0, 3).map((row, i) => (
+                          <tr key={i} className="border-b border-white/5">
+                            <td className="py-2 text-white font-bold">{row[mapping.name || ''] || '—'}</td>
+                            <td className="py-2 text-hsTextSecondary">{row[mapping.age || ''] || '—'}</td>
+                            <td className="py-2 text-hsTextSecondary truncate max-w-[200px]">{row[mapping.symptoms || ''] || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <button type="button" onClick={processBatch} className="w-full bg-hsTeal hover:bg-hsTealHover text-hsBg font-black py-4 rounded-xl text-sm transition-all shadow-[0_0_20px_rgba(0,201,167,0.2)]">
+                  🚀 Start Batch Processing ({rawRows.length} patients)
+                </button>
+              </div>
+            )}
+
+            {isProcessingBatch && (
+              <div className="hs-card p-8 text-center backdrop-blur-md">
+                <div className="text-4xl mb-4 animate-bounce">📦</div>
+                <h2 className="text-xl font-black mb-2">Processing Batch...</h2>
+                <p className="text-xs text-hsTextSecondary mb-6">Please wait while the AI analyzes all patients and checks hospital inventory.</p>
+                
+                <div className="max-w-md mx-auto h-3 bg-hsBg rounded-full overflow-hidden mb-3">
+                  <div className="h-full bg-hsTeal shadow-[0_0_10px_rgba(0,201,167,0.5)] transition-all duration-500" style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }} />
+                </div>
+                <div className="text-[10px] font-bold text-hsTeal uppercase tracking-widest">
+                   {batchProgress.current} / {batchProgress.total} Patients Analyzed
+                </div>
+              </div>
+            )}
           </div>
         )}
       </main>
