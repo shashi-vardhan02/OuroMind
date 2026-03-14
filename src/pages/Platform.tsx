@@ -97,12 +97,13 @@ const Platform = () => {
       setAnalyzePhase('🏥 Checking hospital inventory...');
       await new Promise(r => setTimeout(r, 500));
 
-      const check = checkResourceAvailability(currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
+      const check = checkResourceAvailability(hospitals, currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
       let status: PatientRecord['status'] = check.allAvailable ? 'admitted' : 'partial';
       let altHospital: Hospital | undefined;
 
       if (!check.allAvailable) {
         const alt = findBestAlternativeHospital(
+          hospitals,
           check.missingDoctors.map(d => d.required),
           check.missingMedications.map(m => m.required),
           check.missingEquipment.map(e => e.required),
@@ -223,12 +224,12 @@ const Platform = () => {
           const res = await fetch('/api/analyze-patient', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientData: conditionText }) });
           const analysis: AIAnalysis = await res.json();
           
-          const check = checkResourceAvailability(currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
+          const check = checkResourceAvailability(hospitals, currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
           let status: PatientRecord['status'] = check.allAvailable ? 'admitted' : 'partial';
           let altHospital: Hospital | undefined;
 
           if (!check.allAvailable) {
-            const alt = findBestAlternativeHospital(check.missingDoctors.map(d => d.required), check.missingMedications.map(m => m.required), check.missingEquipment.map(e => e.required), currentHospitalId);
+            const alt = findBestAlternativeHospital(hospitals, check.missingDoctors.map(d => d.required), check.missingMedications.map(m => m.required), check.missingEquipment.map(e => e.required), currentHospitalId);
             if (alt) { altHospital = alt; status = 'referred'; }
           }
 
@@ -552,18 +553,32 @@ const Platform = () => {
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead><tr className="border-b border-white/10 text-[10px] text-hsTextSecondary uppercase tracking-wider">
-                      <th className="py-3 px-4 text-left">Patient ID</th><th className="py-3 px-4 text-left">Name</th><th className="py-3 px-4 text-left">Age</th><th className="py-3 px-4 text-left">Condition</th><th className="py-3 px-4 text-left">Urgency</th><th className="py-3 px-4 text-left">Status</th><th className="py-3 px-4 text-left">Action</th>
+                      <th className="py-3 px-4 text-left">Patient ID</th><th className="py-3 px-4 text-left">Name</th><th className="py-3 px-4 text-left">Condition</th><th className="py-3 px-4 text-left">Status</th><th className="py-3 px-4 text-left">Route / Target</th><th className="py-3 px-4 text-left">Action</th>
                     </tr></thead>
                     <tbody>
                       {[...patients].sort((a, b) => { const o: Record<string,number> = { Emergency: 3, Urgent: 2, Routine: 1 }; return (o[b.analysis?.urgency || ''] || 0) - (o[a.analysis?.urgency || ''] || 0); }).map(p => (
                         <tr key={p.id} className={`border-b border-white/5 ${p.analysis?.urgency === 'Emergency' ? 'bg-hsDanger/5' : ''}`}>
                           <td className="py-3 px-4 font-mono text-hsTextSecondary">{p.id}</td>
-                          <td className="py-3 px-4 font-bold">{p.name}</td>
-                          <td className="py-3 px-4">{p.age}{p.gender[0]}</td>
+                          <td className="py-3 px-4 font-bold">{p.name} <span className="text-[9px] text-hsTextSecondary block font-normal">{p.age}{p.gender[0]}</span></td>
                           <td className="py-3 px-4 max-w-[200px] truncate text-hsTextSecondary">{p.analysis?.diagnosis || p.condition}</td>
-                          <td className="py-3 px-4"><span className={`${urgencyColor(p.analysis?.urgency || '').bg} text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase`}>{p.analysis?.urgency || '—'}</span></td>
-                          <td className="py-3 px-4"><span className={`text-[9px] font-bold ${p.status === 'admitted' ? 'text-hsSafe' : p.status === 'referred' ? 'text-hsDanger' : 'text-hsWarning'}`}>{p.status === 'admitted' ? '🟢 Admitted' : p.status === 'referred' ? '🔴 Referred' : '🟡 Partial'}</span></td>
-                          <td className="py-3 px-4"><button type="button" onClick={() => { setActivePatient(p); setShowCheckResult(true); setCheckAnimIdx(100); setActiveTab('register'); }} className="text-hsTeal text-[10px] font-bold hover:underline">View →</button></td>
+                          <td className="py-3 px-4">
+                            <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${p.status === 'admitted' ? 'bg-hsSafe/15 text-hsSafe' : p.status === 'referred' ? 'bg-hsDanger/15 text-hsDanger' : 'bg-hsWarning/15 text-hsWarning'}`}>
+                              {p.status === 'admitted' ? '🟢 Admitted' : p.status === 'referred' ? '🔴 Referred' : '🟡 Partial'}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                             <div className="text-[10px]">
+                               {p.status === 'admitted' ? (
+                                 <span className="text-hsSafe">📍 {currentHospital.name}</span>
+                               ) : p.altHospital ? (
+                                 <div className="flex flex-col">
+                                   <span className="text-hsDanger">↗️ Transfer to:</span>
+                                   <span className="font-bold">{p.altHospital.name}</span>
+                                 </div>
+                               ) : <span className="text-hsWarning">No ideal branch found</span>}
+                             </div>
+                          </td>
+                          <td className="py-3 px-4"><button type="button" onClick={() => { setActivePatient(p); setShowCheckResult(true); setCheckAnimIdx(100); setActiveTab('register'); }} className="bg-hsTeal/10 hover:bg-hsTeal/20 text-hsTeal text-[10px] font-bold px-3 py-1 rounded-lg border border-hsTeal/20 transition-all">View Details</button></td>
                         </tr>
                       ))}
                     </tbody>

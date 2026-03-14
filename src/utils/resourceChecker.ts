@@ -1,4 +1,3 @@
-import { HOSPITALS } from '../data/hospitalData';
 import type { Hospital } from '../data/hospitalData';
 
 export interface ResourceResult {
@@ -20,13 +19,14 @@ export interface CheckResult {
 }
 
 export function checkResourceAvailability(
+  hospitals: Hospital[],
   currentHospitalId: string,
   requiredDoctors: string[],
   requiredMedications: string[],
   requiredEquipment: string[],
   requiresICU: boolean
 ): CheckResult {
-  const hospital = HOSPITALS.find(h => h.id === currentHospitalId)!;
+  const hospital = hospitals.find(h => h.id === currentHospitalId)!;
 
   const doctorResults: ResourceResult[] = requiredDoctors.map(specialty => {
     const found = hospital.doctors.find(d => d.specialty.toLowerCase().includes(specialty.toLowerCase()) && d.available);
@@ -61,9 +61,10 @@ export function checkResourceAvailability(
 }
 
 export function findBestAlternativeHospital(
+  hospitals: Hospital[],
   missingDoctors: string[], missingMedications: string[], missingEquipment: string[], currentHospitalId: string
 ): Hospital | null {
-  const others = HOSPITALS.filter(h => h.id !== currentHospitalId);
+  const others = hospitals.filter(h => h.id !== currentHospitalId);
   const scored = others.map(hospital => {
     let score = 0;
     missingDoctors.forEach(s => { if (hospital.doctors.some(d => d.specialty.toLowerCase().includes(s.toLowerCase()) && d.available)) score += 3; });
