@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-darkBg: #0a0a0a;
+  --color-darkAccent: #1a0a00;
+  --color-orangePrimary: #ff5500;
+  --color-orangeHover: #ff6a00;
+  --color-cardDark: #1a1a1a;
+  --color-cardDarker: #222222;
+  --font-sans: 'Inter', 'Space Grotesk', sans-serif;
+}
+
+@layer base {
+  *, html, body, #root {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body, #root {
+    min-height: 100vh;
+  }
+
+  body {
+    background-color: #0a0a0a;
+    color: #ffffff;
+    font-family: 'Inter', 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+    background: radial-gradient(circle at top right, #1a0a00, #0a0a0a 40%);
+  }
+}
+
+@layer utilities {
+  .bg-grid-pattern {
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+.glow-orb {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,85,0,0.15) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  z-index: -1;
+}

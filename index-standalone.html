@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OuroMind - AI Patient Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d0d;
+            color: #ffffff;
+            line-height: 1.5;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background Effects */
+        .bg-glow {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255,85,0,0.15) 0%, rgba(58,18,0,0.4) 40%, rgba(13,13,13,0) 70%);
+            z-index: -2;
+            pointer-events: none;
+            filter: blur(80px);
+        }
+
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 { color: #ffffff; font-weight: 700; line-height: 1.2; }
+        p { color: #aaaaaa; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Utilities */
+        .container {
+            max-w-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .text-orange { color: #ff5500; }
+        .bg-orange { background-color: #ff5500; }
+        .border-orange { border-color: #ff5500; }
+        
+        section { padding: 120px 0; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background-color: #ff5500;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(255, 85, 0, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background-color: #ff6a00;
+            box-shadow: 0 6px 20px rgba(255, 85, 0, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .btn-ghost {
+            background-color: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-ghost:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 48px);
+            max-width: 1000px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 50px;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+        
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background-color: #ff5500;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .nav-links a {
+            font-size: 14px;
+            font-weight: 500;
+            color: #aaaaaa;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding-top: 200px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 16px;
+            background: rgba(255, 85, 0, 0.1);
+            border: 1px solid rgba(255, 85, 0, 0.2);
+            border-radius: 50px;
+            color: #ff5500;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 72px;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .typewriter-text {
+            color: #ff5500;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 4px;
+            height: 60px;
+            background-color: #ff5500;
+            vertical-align: middle;
+            margin-left: 4px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .hero p.subtext {
+            font-size: 18px;
+            max-width: 600px;
+            margin-bottom: 48px;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 80px;
+        }
+
+        /* Floating Mockup */
+        .mockup-container {
+            width: 100%;
+            max-width: 900px;
+            perspective: 1000px;
+            margin-bottom: 60px;
+        }
+
+        .mockup {
+            background: #111111;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 85, 0, 0.1);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .mockup-header {
+            height: 48px;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .dot.red { background: #ff5f56; }
+        .dot.yellow { background: #ffbd2e; }
+        .dot.green { background: #27c93f; }
+
+        .mockup-body {
+            height: 400px;
+            display: flex;
+            padding: 24px;
+            gap: 24px;
+            background: #161616;
+        }
+
+        .mockup-left {
+            width: 30%;
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .mockup-right {
+            width: 70%;
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 14px;
+            max-width: 80%;
+        }
+
+        .chat-bubble.dr {
+            background: rgba(255,85,0,0.1);
+            border: 1px solid rgba(255,85,0,0.2);
+            color: #ffffff;
+            align-self: flex-start;
+            border-top-left-radius: 4px;
+        }
+
+        .chat-bubble.pt {
+            background: #222222;
+            color: #aaaaaa;
+            align-self: flex-end;
+            border-top-right-radius: 4px;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 48px;
+            justify-content: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-header h2 {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* How It Works */
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 40px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background-image: linear-gradient(to right, #ff5500 50%, transparent 50%);
+            background-size: 20px 2px;
+            background-repeat: repeat-x;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .step-card {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 32px;
+            width: 30%;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            transition: border-color 0.3s;
+        }
+        
+        .step-card:hover {
+            border-color: #ff5500;
+        }
+
+        .step-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,85,0,0.1);
+            border: 1px solid rgba(255,85,0,0.2);
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff5500;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+            perspective: 1000px;
+        }
+
+        .feature-card {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 32px;
+            transition: transform 0.1s ease-out, box-shadow 0.3s;
+            transform-style: preserve-3d;
+        }
+
+        /* Alternating Highlight Style */
+        .feature-card:nth-child(1),
+        .feature-card:nth-child(4),
+        .feature-card:nth-child(5) {
+            background: linear-gradient(135deg, #2a1100 0%, #1a0a00 100%);
+            border-color: rgba(255,85,0,0.3);
+        }
+
+        .feature-card:hover {
+            box-shadow: 0 10px 30px rgba(255, 85, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 24px;
+            color: #ff5500;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            font-size: 15px;
+        }
+
+        /* Demo Full Section */
+        .demo-section {
+            background: #0d0d0d;
+            border-top: 1px solid #2a2a2a;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .demo-container {
+            display: flex;
+            gap: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .demo-left, .demo-right {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 32px;
+        }
+        
+        .demo-left {
+            width: 40%;
+        }
+        
+        .demo-right {
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaaaaa;
+            margin-bottom: 8px;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            background: #0d0d0d;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #ffffff;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #ff5500;
+        }
+        
+        .demo-right-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* Pricing Section */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+            align-items: center;
+        }
+
+        .pricing-card {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 40px 32px;
+            position: relative;
+        }
+
+        .pricing-card.popular {
+            border: 2px solid #ff5500;
+            background: linear-gradient(180deg, #1a0a00 0%, #161616 100%);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff5500;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            border-radius: 50px;
+        }
+
+        .price-title { font-size: 24px; margin-bottom: 8px; }
+        .price-desc { font-size: 14px; margin-bottom: 24px; min-height: 42px;}
+        .price-val { font-size: 48px; font-weight: 900; margin-bottom: 32px; display: flex; align-items: baseline; gap: 4px;}
+        .price-val span { font-size: 16px; color: #aaaaaa; font-weight: 500; }
+
+        .price-features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .price-features li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #aaaaaa;
+        }
+        
+        .check-icon { color: #ff5500; font-weight: bold; }
+
+        /* FAQ Section */
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .faq-item {
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+
+        .faq-item.active {
+            border-color: rgba(255,85,0,0.5);
+        }
+
+        .faq-question {
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .faq-toggle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaaaaa;
+            transition: all 0.3s;
+        }
+        
+        .faq-item.active .faq-toggle {
+            background: #ff5500;
+            color: white;
+        }
+
+        .faq-answer {
+            padding: 0 24px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 24px 24px;
+            max-height: 200px;
+        }
+
+        /* Footer */
+        footer {
+            background: #0a0a0a;
+            border-top: 1px solid #2a2a2a;
+            padding: 60px 0 40px;
+            text-align: center;
+        }
+
+        .footer-logo {
+            margin-bottom: 32px;
+            justify-content: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .footer-links a {
+            color: #aaaaaa;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: #ff5500;
+        }
+
+        .footer-bottom {
+            color: #555555;
+            font-size: 14px;
+        }
+
+        /* Scroll Reveal Animation Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h1 { font-size: 56px; }
+            .steps-container, .features-grid, .demo-container, .pricing-grid {
+                flex-direction: column;
+                grid-template-columns: 1fr;
+            }
+            .step-line { display: none; }
+            .step-card, .demo-left, .demo-right { width: 100%; }
+            .pricing-card.popular { transform: scale(1); }
+            .nav-links { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow"></div>
+    <div class="bg-pattern"></div>
+
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">▲</div>
+            OuroMind
+        </div>
+        <div class="nav-links">
+            <a href="#">Home</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+        </div>
+        <a href="#" class="btn btn-primary" style="padding: 10px 24px; font-size: 14px;">Get Started</a>
+    </nav>
+
+    <section class="hero container">
+        <div class="badge">✦ The next-generation simulator</div>
+        <h1>
+            Train Smarter.<br>
+            <span class="typewriter-text" id="typewriter"></span><span class="cursor"></span>
+        </h1>
+        <p class="subtext">AI-powered patient simulator for psychiatrists to practice complex cases risk-free.</p>
+        
+        <div class="hero-actions">
+            <a href="#" class="btn btn-primary">Get Started &rarr;</a>
+            <a href="#demo" class="btn btn-ghost">See Demo</a>
+        </div>
+
+        <div class="mockup-container reveal">
+            <div class="mockup">
+                <div class="mockup-header">
+                    <div class="dot red"></div>
+                    <div class="dot yellow"></div>
+                    <div class="dot green"></div>
+                </div>
+                <div class="mockup-body">
+                    <div class="mockup-left">
+                        <div style="height: 12px; width: 60%; background: #2a2a2a; border-radius: 4px; margin-bottom: 16px;"></div>
+                        <div style="height: 8px; width: 100%; background: #222; border-radius: 4px; margin-bottom: 8px;"></div>
+                        <div style="height: 8px; width: 80%; background: #222; border-radius: 4px; margin-bottom: 24px;"></div>
+                        <div style="height: 40px; width: 100%; background: #222; border-radius: 8px; margin-bottom: 8px;"></div>
+                        <div style="height: 40px; width: 100%; background: #222; border-radius: 8px;"></div>
+                    </div>
+                    <div class="mockup-right">
+                        <div class="chat-bubble dr">Hi Alex. Thanks for logging in today. How have things been going?</div>
+                        <div class="chat-bubble pt">(Sighs) Fine. Whatever. I really don't see why we need to talk about it again.</div>
+                        <div class="chat-bubble dr">It sounds like you're frustrated. Let's explore that feeling.</div>
+                        <div style="margin-top: auto; height: 48px; background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-row reveal">
+            <div class="stat-item">
+                <div class="stat-number" data-target="3">0</div>
+                <div class="stat-label">Better session outcomes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="500">0</div>
+                <div class="stat-label">Psychiatrists trained</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="container reveal">
+        <div class="section-header">
+            <h2>How It Works</h2>
+        </div>
+        <div class="steps-container">
+            <div class="step-line"></div>
+            <div class="step-card reveal">
+                <div class="step-icon">1</div>
+                <h3>Describe Patient</h3>
+                <p style="margin-top: 12px;">Input patient demographics, presenting problems, and baseline traits.</p>
+            </div>
+            <div class="step-card reveal" style="transition-delay: 0.1s;">
+                <div class="step-icon">2</div>
+                <h3>Simulate Session</h3>
+                <p style="margin-top: 12px;">Conduct a realistic text-based therapy session with the AI patient.</p>
+            </div>
+            <div class="step-card reveal" style="transition-delay: 0.2s;">
+                <div class="step-icon">3</div>
+                <h3>Get Report</h3>
+                <p style="margin-top: 12px;">Review a detailed 'What Worked' summary analyzing your techniques.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="container reveal">
+        <div class="section-header">
+            <h2>What You Get</h2>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card reveal" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">👤</div>
+                <h3>Patient Profiling</h3>
+                <p>Create detailed, multifaceted patient personas with complex histories.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.1s;" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">🧠</div>
+                <h3>AI Simulation</h3>
+                <p>Engage with an LLM trained on real clinical interaction patterns.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.2s;" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">📊</div>
+                <h3>What Worked Report</h3>
+                <p>Receive objective feedback on therapeutic interventions applied.</p>
+            </div>
+            <div class="feature-card reveal" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">🛡️</div>
+                <h3>Resistance Control</h3>
+                <p>Dial up or down patient resistance to test different modalities.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.1s;" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">⏪</div>
+                <h3>Session History</h3>
+                <p>Revisit and branch from crucial moments in past simulations.</p>
+            </div>
+            <div class="feature-card reveal" style="transition-delay: 0.2s;" onmousemove="handleTilt(event, this)" onmouseleave="resetTilt(this)">
+                <div class="feature-icon">🏷️</div>
+                <h3>Approach Tagging</h3>
+                <p>Auto-categorize your responses by modality (CBT, DBT, dynamic).</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="demo" class="demo-section">
+        <div class="container reveal" style="padding: 120px 24px;">
+            <div class="section-header">
+                <h2>Experience the Simulation</h2>
+            </div>
+            <div class="demo-container">
+                <div class="demo-left">
+                    <h3 style="margin-bottom: 24px;">Patient Profile Setup</h3>
+                    <div class="input-group">
+                        <label>Patient Name Alias</label>
+                        <input type="text" value="Alex Thorne" readonly>
+                    </div>
+                    <div class="input-group">
+                        <label>Resistance Level</label>
+                        <input type="text" value="High" readonly style="color: #ff5500; border-color: rgba(255,85,0,0.5);">
+                    </div>
+                    <div class="input-group">
+                        <label>Presenting Problem</label>
+                        <textarea rows="4" readonly>Severe social anxiety limiting occupational function. High resistance to exposure therapy interventions.</textarea>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;">Begin Session</button>
+                </div>
+                <div class="demo-right">
+                    <div class="demo-right-messages">
+                        <div class="chat-bubble dr">Hi Alex. Thanks for logging in today. How have things been going since we last spoke?</div>
+                        <div class="chat-bubble pt">(Sighs) Fine. Whatever. I really don't see why we need to talk about it again. I told you, I'm just going to keep to myself.</div>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <input type="text" placeholder="Type your therapeutic response here...">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing" class="container reveal">
+        <div class="section-header">
+            <h2>Pricing Plans</h2>
+        </div>
+        <div class="pricing-grid">
+            <div class="pricing-card reveal">
+                <h3 class="price-title">Free</h3>
+                <p class="price-desc">Basic simulation for students.</p>
+                <div class="price-val">$0<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><span class="check-icon">✓</span> 10 simulated sessions/month</li>
+                    <li><span class="check-icon">✓</span> Standard profiles</li>
+                    <li><span class="check-icon">✓</span> Basic transcripts</li>
+                </ul>
+                <button class="btn btn-ghost" style="width: 100%;">Start Free</button>
+            </div>
+            <div class="pricing-card popular reveal" style="transition-delay: 0.1s;">
+                <div class="popular-badge">Most Popular</div>
+                <h3 class="price-title text-orange">Pro</h3>
+                <p class="price-desc">Advanced simulation for professionals.</p>
+                <div class="price-val">$49<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><span class="check-icon">✓</span> Unlimited sessions</li>
+                    <li><span class="check-icon">✓</span> Custom profiles</li>
+                    <li><span class="check-icon">✓</span> Detailed reports</li>
+                    <li><span class="check-icon">✓</span> Resistance dialing</li>
+                </ul>
+                <button class="btn btn-primary" style="width: 100%;">Get Pro</button>
+            </div>
+            <div class="pricing-card reveal" style="transition-delay: 0.2s;">
+                <h3 class="price-title">Clinic</h3>
+                <p class="price-desc">Team management features.</p>
+                <div class="price-val">$199<span>/mo</span></div>
+                <ul class="price-features">
+                    <li><span class="check-icon">✓</span> Everything in Pro</li>
+                    <li><span class="check-icon">✓</span> 10 team seats</li>
+                    <li><span class="check-icon">✓</span> Centralized analytics</li>
+                </ul>
+                <button class="btn btn-ghost" style="width: 100%;">Contact Sales</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq" class="container reveal">
+        <div class="section-header">
+            <h2>FAQ</h2>
+        </div>
+        <div class="faq-container">
+            <div class="faq-item active" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    How accurate is the patient simulation?
+                    <div class="faq-toggle">−</div>
+                </div>
+                <div class="faq-answer">
+                    Our models are trained on thousands of anonymized clinical encounters, making their resistance patterns, deflection techniques, and emotional responses highly realistic.
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    Can I use OuroMind for CEUs?
+                    <div class="faq-toggle">+</div>
+                </div>
+                <div class="faq-answer">
+                    Yes, our Pro and Clinic tiers include certified modules that are approved for CEUs by major psychological associations.
+                </div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    What modalities does the report cover?
+                    <div class="faq-toggle">+</div>
+                </div>
+                <div class="faq-answer">
+                    Currently, our reports analyze your interventions through the lenses of CBT, DBT, ACT, and Psychodynamic therapy, tagging your approaches automatically.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="logo footer-logo">
+                <div class="logo-icon">▲</div>
+                OuroMind
+            </div>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Support</a>
+            </div>
+            <div class="footer-bottom">
+                Built at Hackathon 2026
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 1. Typewriter Effect
+        const textToType = "Counsel Better. (REFIXED)";
+        const typeWriterElement = document.getElementById('typewriter');
+        let i = 0;
+        
+        function typeWriter() {
+            if (i < textToType.length) {
+                typeWriterElement.innerHTML += textToType.charAt(i);
+                i++;
+                setTimeout(typeWriter, 120);
+            }
+        }
+        
+        // Start typing after a short delay
+        setTimeout(typeWriter, 500);
+
+
+        // 2. Scroll Reveal & Stats Counter using Intersection Observer
+        const revealElements = document.querySelectorAll('.reveal');
+        const statNumbers = document.querySelectorAll('.stat-number');
+        let statsCounted = false;
+
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Trigger stats counter if it's the stats row
+                    if (entry.target.classList.contains('stats-row') && !statsCounted) {
+                        statsCounted = true;
+                        statNumbers.forEach(stat => {
+                            const target = parseInt(stat.getAttribute('data-target'));
+                            let count = 0;
+                            const duration = 2000; // 2 seconds
+                            const increment = target / (duration / 16); // 60fps
+                            
+                            const updateCount = () => {
+                                count += increment;
+                                if (count < target) {
+                                    stat.innerText = Math.ceil(count) + (target > 100 ? '+' : 'x');
+                                    requestAnimationFrame(updateCount);
+                                } else {
+                                    stat.innerText = target + (target > 100 ? '+' : 'x');
+                                }
+                            };
+                            updateCount();
+                        });
+                    }
+                    
+                    // Stop observing once revealed (optional)
+                    // observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        revealElements.forEach(el => observer.observe(el));
+
+
+        // 3. 3D Tilt Effect for Feature Cards
+        function handleTilt(e, element) {
+            const rect = element.getBoundingClientRect();
+            const x = e.clientX - rect.left; // x position within the element
+            const y = e.clientY - rect.top;  // y position within the element
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // Calculate rotation (max 10deg)
+            const rotateX = ((y - centerY) / centerY) * -10;
+            const rotateY = ((x - centerX) / centerX) * 10;
+            
+            element.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.03, 1.03, 1.03)`;
+        }
+
+        function resetTilt(element) {
+            element.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+        }
+
+
+        // 4. FAQ Accordion Toggle
+        function toggleFaq(element) {
+            // Close all others
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if (item !== element) {
+                    item.classList.remove('active');
+                    item.querySelector('.faq-toggle').innerText = '+';
+                }
+            });
+            
+            // Toggle current
+            element.classList.toggle('active');
+            const toggleIcon = element.querySelector('.faq-toggle');
+            if (element.classList.contains('active')) {
+                toggleIcon.innerText = '−';
+            } else {
+                toggleIcon.innerText = '+';
+            }
+        }
+    </script>
+</body>
+</html>
