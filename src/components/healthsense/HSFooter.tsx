@@ -1,24 +1,22 @@
 const HSFooter = () => {
   return (
-    <footer id="footer" className="border-t border-white/5 py-12 mt-12">
-      <div className="container mx-auto px-6">
+    <footer className="border-t border-white/5 py-10">
+      <div className="max-w-6xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🏥</span>
-            <span className="text-hsTeal font-bold text-lg">HealthSense</span>
-            <span className="text-white font-light text-lg">AI</span>
+          <div className="flex items-center gap-2.5">
+            <svg className="w-5 h-5 text-hsTeal" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            <span className="font-bold text-white">Health<span className="text-hsTeal">Sense</span> AI</span>
           </div>
-          <div className="text-center md:text-right">
-            <p className="text-hsTextSecondary text-sm">
-              Built for <span className="text-hsTeal font-semibold">NeuraX 2.0 Hackathon</span>
+          <div className="text-center md:text-right space-y-1">
+            <p className="text-xs text-hsTextSecondary">
+              Built for <span className="text-hsTeal font-semibold">NeuraX 2.0 Hackathon</span> — HealthTech & MedAI Track
             </p>
-            <p className="text-hsTextSecondary/60 text-xs mt-1">
-              OuroMind Psychiatric Simulator is an integrated extension
+            <p className="text-[11px] text-hsTextSecondary/50">
+              Solving healthcare access for 3.5B underserved people · Powered by NVIDIA NIM
             </p>
           </div>
-        </div>
-        <div className="mt-8 pt-6 border-t border-white/5 text-center text-xs text-hsTextSecondary/40">
-          Powered by NVIDIA NIM · Llama 3.1 70B · © 2026 HealthSense AI
         </div>
       </div>
     </footer>

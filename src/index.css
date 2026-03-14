@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* HealthSense AI */
   --color-hsBg: #050d1a;
   --color-hsBgAlt: #0a1628;
   --color-hsCard: #0f2040;
@@ -13,7 +12,6 @@
   --color-hsSafe: #22c55e;
   --color-hsTextPrimary: #ffffff;
   --color-hsTextSecondary: #94a3b8;
-  /* OuroMind legacy */
   --color-darkBg: #0a0a0a;
   --color-darkAccent: #1a0a00;
   --color-orangePrimary: #ff5500;
@@ -24,16 +22,8 @@
 }
 
 @layer base {
-  *, html, body, #root {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  html, body, #root {
-    min-height: 100vh;
-  }
-
+  *, html, body, #root { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body, #root { min-height: 100vh; }
   body {
     background-color: #050d1a;
     color: #ffffff;
@@ -42,42 +32,72 @@
   }
 }
 
-/* OuroMind scoped theme override */
-.ouromind-theme {
-  background: radial-gradient(circle at top right, #1a0a00, #0a0a0a 40%);
-}
+.ouromind-theme { background: radial-gradient(circle at top right, #1a0a00, #0a0a0a 40%); }
 
 @layer utilities {
   .bg-grid-pattern {
-    background-image: 
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   .bg-hs-grid {
-    background-image: 
-      linear-gradient(to right, rgba(0, 201, 167, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 201, 167, 0.04) 1px, transparent 1px);
+    background-image: linear-gradient(to right, rgba(0,201,167,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,201,167,0.03) 1px, transparent 1px);
     background-size: 50px 50px;
   }
 }
 
-.glow-orb {
+.glow-orb { position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,85,0,0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; filter: blur(40px); z-index: -1; }
+.hs-glow { position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,201,167,0.08) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; filter: blur(60px); z-index: 0; }
+
+/* ── Pulse Animations ──────────────────────────────────── */
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+}
+@keyframes pulse-orange {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(249,115,22,0); }
+}
+@keyframes pulse-teal {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,201,167,0.3); }
+  50% { box-shadow: 0 0 0 8px rgba(0,201,167,0); }
+}
+.pulse-danger { animation: pulse-red 2s ease-in-out infinite; }
+.pulse-warning { animation: pulse-orange 2s ease-in-out infinite; }
+.pulse-teal { animation: pulse-teal 2s ease-in-out infinite; }
+
+/* ── Scanner Animation ─────────────────────────────────── */
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.scan-anim {
+  position: relative;
+  overflow: hidden;
+}
+.scan-anim::after {
+  content: '';
   position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(255,85,0,0.15) 0%, rgba(0,0,0,0) 70%);
-  border-radius: 50%;
-  filter: blur(40px);
-  z-index: -1;
+  top: 0; left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,201,167,0.15), transparent);
+  animation: scan-line 1.8s ease-in-out infinite;
 }
 
-.hs-glow {
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(0,201,167,0.1) 0%, rgba(0,0,0,0) 70%);
-  border-radius: 50%;
-  filter: blur(60px);
-  z-index: 0;
+/* ── Card Glow ─────────────────────────────────────────── */
+.hs-card {
+  background: rgba(15,32,64,0.4);
+  border: 1px solid rgba(0,201,167,0.1);
+  box-shadow: 0 0 20px rgba(0,201,167,0.03);
+  border-radius: 16px;
+  transition: all 0.3s ease;
 }
+.hs-card:hover {
+  border-color: rgba(0,201,167,0.25);
+  box-shadow: 0 0 30px rgba(0,201,167,0.08);
+}
+
+/* ── Range Slider Styling ──────────────────────────────── */
+input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; background: #1e293b; border-radius: 3px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #00c9a7; margin-top: -6px; cursor: pointer; box-shadow: 0 0 8px rgba(0,201,167,0.4); }
