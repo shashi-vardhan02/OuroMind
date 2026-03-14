@@ -1,6 +1,19 @@
 @import "tailwindcss";
 
 @theme {
+  /* HealthSense AI */
+  --color-hsBg: #050d1a;
+  --color-hsBgAlt: #0a1628;
+  --color-hsCard: #0f2040;
+  --color-hsTeal: #00c9a7;
+  --color-hsTealHover: #00e6bf;
+  --color-hsSky: #0ea5e9;
+  --color-hsDanger: #ef4444;
+  --color-hsWarning: #f97316;
+  --color-hsSafe: #22c55e;
+  --color-hsTextPrimary: #ffffff;
+  --color-hsTextSecondary: #94a3b8;
+  /* OuroMind legacy */
   --color-darkBg: #0a0a0a;
   --color-darkAccent: #1a0a00;
   --color-orangePrimary: #ff5500;
@@ -22,12 +35,16 @@
   }
 
   body {
-    background-color: #0a0a0a;
+    background-color: #050d1a;
     color: #ffffff;
     font-family: 'Inter', 'Space Grotesk', sans-serif;
     overflow-x: hidden;
-    background: radial-gradient(circle at top right, #1a0a00, #0a0a0a 40%);
   }
+}
+
+/* OuroMind scoped theme override */
+.ouromind-theme {
+  background: radial-gradient(circle at top right, #1a0a00, #0a0a0a 40%);
 }
 
 @layer utilities {
@@ -36,6 +53,12 @@
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
+  }
+  .bg-hs-grid {
+    background-image: 
+      linear-gradient(to right, rgba(0, 201, 167, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 201, 167, 0.04) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 }
 
@@ -47,4 +70,14 @@
   border-radius: 50%;
   filter: blur(40px);
   z-index: -1;
+}
+
+.hs-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(0,201,167,0.1) 0%, rgba(0,0,0,0) 70%);
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 0;
 }

@@ -217,8 +217,9 @@ const Dashboard = () => {
       {/* Top Navigation */}
       <header className="h-16 border-b border-[#2a2018] bg-[#0d0a08]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-10">
         <div className="flex items-center gap-4">
-          <Link to="/" className="text-[#999888] hover:text-white transition-colors">
-            <ChevronLeft size={20} />
+          <Link to="/platform" className="text-hsTeal hover:text-hsTealHover transition-colors text-sm font-medium flex items-center gap-1">
+            <ChevronLeft size={16} />
+            Back to HealthSense
           </Link>
           <div className="flex items-center gap-2 font-bold text-lg">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff4d00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
