@@ -206,37 +206,43 @@ const Platform = () => {
     setBatchProgress({ current: 0, total: rawRows.length });
 
     const newRecords: PatientRecord[] = [];
-    for (let i = 0; i < rawRows.length; i++) {
-      const row = rawRows[i];
-      setBatchProgress({ current: i + 1, total: rawRows.length });
+    const CHUNK_SIZE = 5; // Process 5 patients at a time
 
-      const name = row[mapping.name || ''] || 'Unknown Patient';
-      const age = row[mapping.age || ''] || '';
-      const gender = row[mapping.gender || ''] || 'Other';
-      const symptoms = row[mapping.symptoms || ''] || '';
-      const vitals = `BP: ${row[mapping.bp || ''] || '?'}, HR: ${row[mapping.hr || ''] || '?'}, Temp: ${row[mapping.temp || ''] || '?'}, O2: ${row[mapping.o2 || ''] || '?'}`;
-      const conditionText = `${name}, ${age}${gender[0]}, ${symptoms}. Vitals: ${vitals}`;
+    for (let i = 0; i < rawRows.length; i += CHUNK_SIZE) {
+      const chunk = rawRows.slice(i, i + CHUNK_SIZE);
+      
+      const chunkPromises = chunk.map(async (row, idx) => {
+        const name = row[mapping.name || ''] || 'Unknown Patient';
+        const age = row[mapping.age || ''] || '';
+        const gender = row[mapping.gender || ''] || 'Other';
+        const symptoms = row[mapping.symptoms || ''] || '';
+        const vitals = `BP: ${row[mapping.bp || ''] || '?'}, HR: ${row[mapping.hr || ''] || '?'}, Temp: ${row[mapping.temp || ''] || '?'}, O2: ${row[mapping.o2 || ''] || '?'}`;
+        const conditionText = `${name}, ${age}${gender[0]}, ${symptoms}. Vitals: ${vitals}`;
 
-      try {
-        const res = await fetch('/api/analyze-patient', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientData: conditionText }) });
-        const analysis: AIAnalysis = await res.json();
-        
-        const check = checkResourceAvailability(currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
-        let status: PatientRecord['status'] = check.allAvailable ? 'admitted' : 'partial';
-        let altHospital: Hospital | undefined;
+        try {
+          const res = await fetch('/api/analyze-patient', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ patientData: conditionText }) });
+          const analysis: AIAnalysis = await res.json();
+          
+          const check = checkResourceAvailability(currentHospitalId, analysis.requiredDoctors, analysis.requiredMedications, analysis.requiredEquipment, analysis.requiresICU);
+          let status: PatientRecord['status'] = check.allAvailable ? 'admitted' : 'partial';
+          let altHospital: Hospital | undefined;
 
-        if (!check.allAvailable) {
-          const alt = findBestAlternativeHospital(check.missingDoctors.map(d => d.required), check.missingMedications.map(m => m.required), check.missingEquipment.map(e => e.required), currentHospitalId);
-          if (alt) { altHospital = alt; status = 'referred'; }
+          if (!check.allAvailable) {
+            const alt = findBestAlternativeHospital(check.missingDoctors.map(d => d.required), check.missingMedications.map(m => m.required), check.missingEquipment.map(e => e.required), currentHospitalId);
+            if (alt) { altHospital = alt; status = 'referred'; }
+          }
+
+          return { id: genId(), name, age, gender, contact: '', address: '', emergencyContact: '', condition: symptoms, vitals, analysis, check, status, altHospital } as PatientRecord;
+        } catch (err) {
+          console.error('Batch error:', err);
+          return null;
         }
+      });
 
-        const record: PatientRecord = { id: genId(), name, age, gender, contact: '', address: '', emergencyContact: '', condition: symptoms, vitals, analysis, check, status, altHospital };
-        newRecords.push(record);
-      } catch (err) {
-        console.error('Batch error:', err);
-      }
-      // Small delay to prevent rate limit
-      await new Promise(r => setTimeout(r, 200));
+      const results = await Promise.all(chunkPromises);
+      results.forEach(r => { if (r) newRecords.push(r); });
+      
+      setBatchProgress(prev => ({ ...prev, current: Math.min(prev.total, i + CHUNK_SIZE) }));
     }
 
     setPatients(prev => [...newRecords, ...prev]);
