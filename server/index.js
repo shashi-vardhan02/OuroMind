@@ -363,6 +363,96 @@ Return ONLY valid JSON:
   }
 });
 
+// ══════════════════════════════════════════════════════════════
+// HEALTHSENSE AI — HOSPITAL RESOURCE ALLOCATION ENDPOINTS
+// ══════════════════════════════════════════════════════════════
+
+// ── ENDPOINT: Analyze Patient → determine required resources ──
+app.post('/api/analyze-patient', async (req, res) => {
+  const { patientData } = req.body;
+  const prompt = `You are a medical AI for hospital resource allocation. Analyze this patient and determine exactly what hospital resources are needed for treatment.
+
+PATIENT: ${patientData}
+
+Return ONLY valid JSON with no markdown:
+{
+  "patientSummary": "brief summary of condition",
+  "urgency": "Emergency | Urgent | Routine",
+  "urgencyReason": "why this urgency level",
+  "diagnosis": "most likely diagnosis",
+  "requiredDoctors": ["Cardiologist", "General Physician"],
+  "requiredMedications": ["Aspirin", "Amlodipine"],
+  "requiredEquipment": ["ECG Machine", "MRI Scanner"],
+  "requiresICU": false,
+  "estimatedStay": "2-3 days",
+  "criticalNeeds": ["top 2-3 most critical requirements"]
+}`;
+  try {
+    const raw = await askAI([{ role: 'user', content: prompt }], 800);
+    res.json(extractJSON(raw));
+  } catch (err) {
+    console.error('Analyze patient error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── ENDPOINT: Generate Referral Letter ────────────────────────
+app.post('/api/generate-referral', async (req, res) => {
+  const { patient, missingResources, targetHospital } = req.body;
+  const prompt = `Generate a formal medical referral letter for a patient being transferred to another hospital branch.
+
+PATIENT: ${JSON.stringify(patient)}
+MISSING AT CURRENT HOSPITAL: ${JSON.stringify(missingResources)}
+REFERRING TO: ${JSON.stringify(targetHospital)}
+DATE: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+
+Return ONLY valid JSON:
+{
+  "referralLetter": "full formal letter text with proper formatting",
+  "urgentTransfer": true,
+  "transferReason": "brief reason for transfer",
+  "handoverNotes": ["3-4 specific handover instructions for receiving hospital"]
+}`;
+  try {
+    const raw = await askAI([{ role: 'user', content: prompt }], 1000);
+    res.json(extractJSON(raw));
+  } catch (err) {
+    console.error('Referral error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── ENDPOINT: Generate Treatment Plan ─────────────────────────
+app.post('/api/treatment-plan', async (req, res) => {
+  const { patient, assignedDoctors, assignedMedications, assignedEquipment } = req.body;
+  const prompt = `Generate a detailed treatment plan for this patient. All required resources are confirmed available.
+
+PATIENT: ${JSON.stringify(patient)}
+ASSIGNED DOCTORS: ${JSON.stringify(assignedDoctors)}
+ASSIGNED MEDICATIONS: ${JSON.stringify(assignedMedications)}
+ASSIGNED EQUIPMENT: ${JSON.stringify(assignedEquipment)}
+
+Return ONLY valid JSON:
+{
+  "treatmentPlan": [
+    { "step": 1, "action": "description", "timeframe": "Immediate", "responsible": "Dr. Name" }
+  ],
+  "medicationSchedule": [
+    { "medication": "name", "dose": "dosage", "frequency": "how often", "duration": "how long" }
+  ],
+  "monitoringPlan": ["what to monitor and how often"],
+  "expectedOutcome": "brief prognosis",
+  "dischargeConditions": ["conditions for discharge"]
+}`;
+  try {
+    const raw = await askAI([{ role: 'user', content: prompt }], 1000);
+    res.json(extractJSON(raw));
+  } catch (err) {
+    console.error('Treatment plan error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(3001, () => {
   console.log('✅ HealthSense AI + OuroMind server on http://localhost:3001');
   console.log('🔑 NVIDIA Key loaded:', !!NVIDIA_API_KEY);
