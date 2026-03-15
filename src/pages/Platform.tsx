@@ -16,12 +16,16 @@ interface PatientRecord { id: string; name: string; age: string; gender: string;
 const SYMPTOM_TAGS = ['Chest Pain', 'Fever', 'Difficulty Breathing', 'Head Injury', 'Diabetes', 'Fracture', 'Stroke Symptoms', 'Unconscious', 'Abdominal Pain', 'Seizure'];
 
 const tabs = [
-  { id: 'overview', icon: '🏠', label: 'Overview' },
-  { id: 'register', icon: '👤', label: 'Register Patient' },
-  { id: 'queue', icon: '📋', label: 'Patient Queue' },
-  { id: 'inventory', icon: '🏥', label: 'Hospital Inventory' },
+  { id: 'overview', icon: '📊', label: 'Overview' },
+  { id: 'register', icon: '🔬', label: 'AI Diagnostics' },
+  { id: 'queue', icon: '📈', label: 'Predictive Analytics' },
+  { id: 'remote', icon: '📶', label: 'Remote Care' },
+  { id: 'security', icon: '🛡️', label: 'Security Vault' },
+  { id: 'inventory', icon: '⚙️', label: 'Workflow AI' },
   { id: 'import', icon: '📥', label: 'Import Dataset' },
-];
+] as const;
+
+type TabId = typeof tabs[number]['id'];
 
 function urgencyColor(u: string) {
   const l = u?.toLowerCase();
@@ -34,7 +38,7 @@ let idCounter = 1;
 function genId() { return `HS-2026-${String(idCounter++).padStart(4, '0')}`; }
 
 const Platform = () => {
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState<TabId>('overview');
   const [hospitals, setHospitals] = useState<Hospital[]>(JSON.parse(JSON.stringify(HOSPITALS)));
   const [currentHospitalId, setCurrentHospitalId] = useState('main');
   const currentHospital = hospitals.find(h => h.id === currentHospitalId)!;
@@ -712,6 +716,115 @@ const Platform = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {/* ── Remote Care Tab ───────────────────────────────── */}
+        {activeTab === 'remote' && (
+          <div className="p-6 max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h1 className="text-2xl font-black mb-6">📶 Remote Care Module</h1>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 hs-card p-6 rounded-2xl relative overflow-hidden bg-hsCard/40">
+                <div className="flex justify-between items-center mb-8 relative z-10">
+                  <div>
+                    <h2 className="text-xl font-black text-white">Rural Patient Node: RC-402</h2>
+                    <p className="text-xs text-hsTextSecondary">Live Telehealth Stream • Vikarabad Clinic</p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-hsSafe/10 px-3 py-1 rounded-full border border-hsSafe/20">
+                    <div className="w-2 h-2 rounded-full bg-hsSafe animate-pulse"></div>
+                    <span className="text-[10px] font-black text-hsSafe uppercase tracking-widest">Active Monitoring</span>
+                  </div>
+                </div>
+                
+                <div className="h-48 bg-black/40 rounded-xl relative overflow-hidden border border-white/5 flex items-center justify-center">
+                   <div className="absolute inset-0 bg-hs-grid opacity-10"></div>
+                   <svg width="100%" height="80" viewBox="0 0 1000 80" className="stroke-hsTeal stroke-[2px] fill-none">
+                      <path d="M0,40 L100,40 L110,35 L120,45 L130,40 L200,40 L210,10 L220,70 L230,40 L350,40 L360,35 L370,45 L380,40 L450,40 L460,10 L470,70 L480,40 L600,40 L610,35 L620,45 L630,40 L700,40 L710,10 L720,70 L730,40 L850,40 L860,35 L870,45 L880,40 L950,40 L960,10 L970,70 L980,40 L1000,40">
+                         <animate attributeName="stroke-dasharray" values="1000; 1000" dur="2s" repeatCount="indefinite" />
+                         <animate attributeName="stroke-dashoffset" from="1000" to="0" dur="2s" repeatCount="indefinite" />
+                      </path>
+                   </svg>
+                   <div className="absolute inset-0 bg-gradient-to-r from-hsTeal/5 to-transparent h-full w-20 animate-scan"></div>
+                </div>
+
+                <div className="grid grid-cols-4 gap-4 mt-8">
+                   {[
+                     { l: 'Pulse', v: '76', u: 'bpm', c: 'white' },
+                     { l: 'Oxygen', v: '98', u: '%', c: 'hsTeal' },
+                     { l: 'Temp', v: '98.6', u: '°F', c: 'hsSky' },
+                     { l: 'BP', v: '120/80', u: 'sys/dia', c: 'hsSafe' },
+                   ].map(v => (
+                     <div key={v.l} className="text-center">
+                        <p className="text-[9px] text-hsTextSecondary uppercase font-black mb-1">{v.l}</p>
+                        <p className={`text-xl font-black text-${v.c}`}>{v.v}</p>
+                        <p className="text-[8px] text-hsTextSecondary">{v.u}</p>
+                     </div>
+                   ))}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                 <div className="hs-card p-6 rounded-2xl bg-hsTeal/5 border-hsTeal/20">
+                   <h3 className="text-[10px] font-black text-white mb-4 uppercase tracking-widest">Village Nodes Status</h3>
+                   <div className="space-y-3">
+                      {['Vikarabad', 'Moinabad', 'Zahirabad', 'Tandur'].map((loc, i) => (
+                        <div key={loc} className="flex justify-between items-center text-[11px]">
+                           <span className="text-hsTextSecondary">{loc}</span>
+                           <span className={i === 3 ? 'text-hsDanger font-bold' : 'text-hsSafe font-bold'}>{i === 3 ? '🔴 Offline' : '🟢 Online'}</span>
+                        </div>
+                      ))}
+                   </div>
+                 </div>
+                 <div className="hs-card p-6 rounded-2xl border-white/5 bg-white/5">
+                    <p className="text-[10px] text-hsTextSecondary mb-4 italic">Predictive risk analysis running for remote streams...</p>
+                    <div className="flex items-center gap-3">
+                       <span className="text-2xl">🧠</span>
+                       <div>
+                          <p className="text-[11px] font-black text-white">Zero Anomalies</p>
+                          <p className="text-[9px] text-hsTextSecondary">Risk level: Minimal</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Security Vault Tab ────────────────────────────── */}
+        {activeTab === 'security' && (
+          <div className="p-6 max-w-6xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <h1 className="text-2xl font-black mb-6">🛡️ Privacy & Security Layer</h1>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="hs-card p-8 rounded-2xl bg-hsTeal/5 border-hsTeal/20 relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-hsTeal/10 blur-3xl rounded-full"></div>
+                   <div className="w-12 h-12 bg-hsTeal/10 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner border border-hsTeal/20">🔐</div>
+                   <h2 className="text-lg font-black text-white mb-2">End-to-End Encryption</h2>
+                   <p className="text-xs text-hsTextSecondary mb-6">All patient data and AI logs are secured using military-grade encryption standards for HIPAA compliance.</p>
+                   <div className="space-y-3">
+                      <div className="flex justify-between text-xs px-3 py-2 bg-hsBg rounded-lg border border-white/5">
+                         <span className="text-hsTextSecondary">Encryption Standard</span>
+                         <span className="text-hsTeal font-black font-mono">AES-256-GCM</span>
+                      </div>
+                      <div className="flex justify-between text-xs px-3 py-2 bg-hsBg rounded-lg border border-white/5">
+                         <span className="text-hsTextSecondary">Data Integrity</span>
+                         <span className="text-hsSafe font-black uppercase tracking-widest text-[9px]">Verified ✅</span>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="hs-card p-8 rounded-2xl border-white/5 relative overflow-hidden">
+                   <div className="w-12 h-12 bg-hsSky/10 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner border border-hsSky/20">🏛️</div>
+                   <h2 className="text-lg font-black text-white mb-2">Decentralized Logs</h2>
+                   <p className="text-xs text-hsTextSecondary mb-6">Securing the audit trail using decentralized sharding to prevent unauthorized tampering.</p>
+                   <div className="grid grid-cols-3 gap-2">
+                        {[1,2,3,4,5,6].map(i => (
+                          <div key={i} className="aspect-square bg-white/5 rounded-lg border border-white/5 flex items-center justify-center">
+                             <div className="w-1 h-1 rounded-full bg-hsSky animate-ping"></div>
+                          </div>
+                        ))}
+                   </div>
+                   <p className="text-[9px] text-hsTextSecondary mt-4 text-center italic">Distributed across 6 regional med-nodes</p>
+                </div>
+             </div>
           </div>
         )}
       </main>

@@ -2,48 +2,101 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const modules = [
-  { icon: '🔬', title: 'AI Diagnostics', desc: 'Describe symptoms → AI determines diagnosis, required doctors, medications, and equipment', demo: true },
-  { icon: '🏥', title: 'Resource Matching', desc: 'Real-time check against hospital inventory — doctors, pharmacy, and equipment availability', demo: true },
-  { icon: '🚑', title: 'Smart Referral', desc: 'If resources are missing, instantly find the nearest branch that has everything needed', demo: true },
-  { icon: '📋', title: 'Treatment Planning', desc: 'AI generates step-by-step treatment plans with medication schedules and monitoring', demo: true },
-  { icon: '📊', title: 'Inventory Management', desc: 'Live dashboard of all hospital resources across branches — toggle availability in real-time', demo: true },
+  {
+    title: 'AI Diagnostic Module',
+    desc: 'Instant condition analysis, triage classification, and medical resource determination.',
+    icon: '🔬',
+    color: 'from-hsTeal to-hsSky',
+    badge: 'Core'
+  },
+  {
+    title: 'Predictive Analytics',
+    desc: 'Real-time risk monitoring and predictive load balancing across hospital branches.',
+    icon: '📈',
+    color: 'from-hsSky to-blue-500',
+    badge: 'AI Powered'
+  },
+  {
+    title: 'Remote Care Module',
+    desc: 'IoT-enabled telehealth ecosystem for remote patient monitoring in rural areas.',
+    icon: '📶',
+    color: 'from-purple-500 to-pink-500',
+    badge: 'v2.0'
+  },
+  {
+    title: 'Privacy & Security Layer',
+    desc: 'End-to-end encryption and decentralized architecture for secure patient data.',
+    icon: '🛡️',
+    color: 'from-blue-600 to-hsTeal',
+    badge: 'Encrypted'
+  },
+  {
+    title: 'Workflow Automation',
+    desc: 'Automated hospital resource allocation for beds, doctors, and medications.',
+    icon: '⚙️',
+    color: 'from-hsTeal to-hsSafe',
+    badge: 'Live'
+  },
+  {
+    title: 'OuroMind Extension',
+    desc: 'The advanced patient simulation suite for training and stress-testing diagnostics.',
+    icon: '🧠',
+    color: 'from-orange-500 to-red-500',
+    badge: 'Integrated',
+    isExtension: true
+  }
 ];
 
-const HSModules = () => (
-  <section id="modules" className="py-20 relative">
-    <div className="max-w-6xl mx-auto px-6">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
-        <div className="text-xs uppercase tracking-[0.2em] text-hsTeal font-bold mb-3">Platform Capabilities</div>
-        <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-3">Everything a Hospital <span className="text-hsTeal">Needs</span></h2>
-      </motion.div>
+const HSModules = () => {
+  return (
+    <section className="py-24 px-6 bg-hsBgAlt/30 border-y border-white/5" id="modules">
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center mb-16 space-y-4">
+          <h2 className="text-3xl lg:text-5xl font-black text-white">Required <span className="text-hsTeal">Modules.</span></h2>
+          <p className="text-hsTextSecondary max-w-2xl mx-auto italic font-medium">Aligning with the HealthTech & MedAI Hackathon ecosystem requirements.</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {modules.map((m, i) => (
-          <motion.div key={m.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-            className="group bg-hsCard/30 border border-white/5 rounded-2xl p-6 hover:border-hsTeal/30 hover:shadow-[0_0_30px_rgba(0,201,167,0.06)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">{m.icon}</span>
-              {m.demo && <span className="flex items-center gap-1 text-[10px] text-hsTeal font-bold uppercase tracking-wider bg-hsTeal/10 px-2 py-0.5 rounded-full"><span className="w-1.5 h-1.5 rounded-full bg-hsTeal"/> Live</span>}
-            </div>
-            <h3 className="text-white font-bold text-lg mb-1.5">{m.title}</h3>
-            <p className="text-hsTextSecondary text-sm leading-relaxed">{m.desc}</p>
-          </motion.div>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {modules.map((m, i) => (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={`hs-card p-8 rounded-2xl group relative overflow-hidden flex flex-col h-full bg-hsCard/40 border border-white/5 hover:border-hsTeal/20 transition-all duration-300 ${m.isExtension ? 'border-orange-500/20' : ''}`}
+            >
+              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${m.color} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity`} />
+              
+              <div className="flex justify-between items-start mb-6 relative">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-500">
+                  {m.icon}
+                </div>
+                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase border ${m.isExtension ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' : 'bg-hsTeal/10 border-hsTeal/20 text-hsTeal'}`}>
+                  {m.badge}
+                </span>
+              </div>
 
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
-          <Link to="/app" className="block h-full group bg-gradient-to-br from-[#ff5500]/8 to-[#ff8800]/4 border border-[#ff5500]/20 rounded-2xl p-6 hover:border-[#ff5500]/50 hover:shadow-[0_0_30px_rgba(255,85,0,0.08)] transition-all duration-300">
-            <div className="flex items-start justify-between mb-4">
-              <span className="text-4xl group-hover:scale-110 transition-transform">🧠</span>
-              <span className="flex items-center gap-1 text-[10px] text-[#ff5500] font-bold uppercase tracking-wider bg-[#ff5500]/10 px-2 py-0.5 rounded-full">Extension</span>
-            </div>
-            <h3 className="text-[#ff5500] font-bold text-lg mb-1.5">OuroMind Training</h3>
-            <p className="text-hsTextSecondary text-sm leading-relaxed">Doctors practice on AI patient simulations before treating real patients. Reduces errors. Builds confidence.</p>
-            <div className="mt-3 text-xs text-[#ff5500]/60 font-semibold">Launch Simulator →</div>
-          </Link>
-        </motion.div>
+              <h3 className="text-xl font-black text-white mb-3 group-hover:text-hsTeal transition-colors">{m.title}</h3>
+              <p className="text-sm text-hsTextSecondary leading-relaxed mb-8 flex-grow">{m.desc}</p>
+              
+              <div className="pt-6 border-t border-white/5 mt-auto">
+                {m.isExtension ? (
+                  <Link to="/app" className="inline-flex items-center gap-2 text-orange-500 text-[10px] font-black uppercase tracking-widest hover:translate-x-1 transition-all">
+                    Launch Extension suites →
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2 text-hsTeal text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">
+                    <div className="w-1.5 h-1.5 rounded-full bg-hsTeal animate-pulse" /> Live Module
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default HSModules;
