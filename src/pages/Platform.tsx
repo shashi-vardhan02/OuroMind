@@ -811,18 +811,21 @@ const Platform = () => {
                    </div>
                 </div>
 
-                <div className="hs-card p-8 rounded-2xl border-white/5 relative overflow-hidden">
-                   <div className="w-12 h-12 bg-hsSky/10 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner border border-hsSky/20">🏛️</div>
-                   <h2 className="text-lg font-black text-white mb-2">Decentralized Logs</h2>
-                   <p className="text-xs text-hsTextSecondary mb-6">Securing the audit trail using decentralized sharding to prevent unauthorized tampering.</p>
-                   <div className="grid grid-cols-3 gap-2">
-                        {[1,2,3,4,5,6].map(i => (
-                          <div key={i} className="aspect-square bg-white/5 rounded-lg border border-white/5 flex items-center justify-center">
-                             <div className="w-1 h-1 rounded-full bg-hsSky animate-ping"></div>
-                          </div>
-                        ))}
+                <div className="hs-card p-8 rounded-2xl border-white/5 relative overflow-hidden bg-hsSky/5">
+                   <div className="w-12 h-12 bg-hsSky/10 rounded-xl flex items-center justify-center text-2xl mb-6 shadow-inner border border-hsSky/20">🛂</div>
+                   <h2 className="text-lg font-black text-white mb-2">Zero Trust Access</h2>
+                   <p className="text-xs text-hsTextSecondary mb-6">Implementing continuous verification and identity-based access control for all medical staff.</p>
+                   <div className="space-y-3">
+                        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                           <div className="w-1.5 h-1.5 rounded-full bg-hsSafe animate-pulse"></div>
+                           <p className="text-[10px] font-mono text-white">SCANNING: User ID verify...</p>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5 opacity-60">
+                           <div className="w-1.5 h-1.5 rounded-full bg-hsSky"></div>
+                           <p className="text-[10px] font-mono text-white">ENFORCING: Least privilege...</p>
+                        </div>
                    </div>
-                   <p className="text-[9px] text-hsTextSecondary mt-4 text-center italic">Distributed across 6 regional med-nodes</p>
+                   <p className="text-[9px] text-hsTextSecondary mt-4 text-center italic">Real-time threat monitoring active</p>
                 </div>
              </div>
           </div>

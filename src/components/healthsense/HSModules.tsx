@@ -25,7 +25,7 @@ const modules = [
   },
   {
     title: 'Privacy & Security Layer',
-    desc: 'End-to-end encryption and decentralized architecture for secure patient data.',
+    desc: 'End-to-end encryption and Zero Trust access control for secure patient data.',
     icon: '🛡️',
     color: 'from-blue-600 to-hsTeal',
     badge: 'Encrypted'
